@@ -1851,25 +1851,34 @@
                 });
 
                 layer.on('click', function(e) {
-                  // Hide tooltip and popup before flying
-                  layer.closeTooltip();
-                  layer.closePopup();
+                  setTimeout(() => {
+                 
+                    // Hide tooltip and popup
+                    layer.closeTooltip();
+                    layer.closePopup();
 
-                  // Fly to marker
-                  map.flyTo([e.latlng.lat * 1.00025, e.latlng.lng], 15, {
-                      animate: true,
-                      duration: 1.5,
-                      easeLinearity: 0.2
+                    // Fly to marker
+                    map.flyTo([e.latlng.lat * 1.00025, e.latlng.lng], 15, {
+                        animate: true,
+                        duration: 1.5,
+                        easeLinearity: 0.2
+                    });
+
+                    // After fly finishes, open popup
+                    const onMoveEnd = function() {
+                        layer.openPopup();
+                        map.off('moveend', onMoveEnd);
+                    };
+                    map.on('moveend', onMoveEnd);
+
+                    layer.once('popupclose', function () {
+                        map.flyTo([36.5, 139], 7, {
+                            animate: true,
+                            duration: 1.5,
+                            easeLinearity: 0.2
+                        });
+                    });
                   });
-
-                  // Show tooltip and popup after fly finishes
-                  const onMoveEnd = function() {
-                      layer.openPopup();
-                      // Remove listener so it doesn't trigger on other moves
-                      map.off('moveend', onMoveEnd);
-                  };
-
-                  map.on('moveend', onMoveEnd);
               });
             }
         }).addTo(map);
