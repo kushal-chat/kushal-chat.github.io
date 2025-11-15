@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+  <html lang="ja"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Load Kiwi Maru -->
+    <link href="https://fonts.googleapis.com/css2?family=WDXL+Lubrifont+JP+N&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru&display=swap" rel="stylesheet">
+    
+    <!-- Optional fallback -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+    <title>生成AI倫理教育パイロットプログラム - 学校マップ</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', Meiryo, sans-serif;
+            overflow: hidden;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .custom-tooltip {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            font-size: 14px;
+            max-width: 300px;
+        }
+        .tooltip-title {
+            font-family: 'WDXL Lubrifont JP N', 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', Meiryo, sans-serif;
+            font-weight: bold;
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #4CAF50;
+        }
+        .tooltip-location {
+            color: #7f8c8d;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .tooltip-overview {
+            color: #34495e;
+            line-height: 1.4;
+            font-size: 13px;
+            overflow: hidden;
+        }
+        .custom-marker {
+            background-color: #28a745;
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .custom-marker:hover {
+            transform: scale(1.3);
+            background-color: #45a049;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 1000 !important;
+        }
+        .popup-content {
+            max-width: 500px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .popup-title {
+            font-family: 'WDXL Lubrifont JP N', 'Noto Sans JP', sans-serif;
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4CAF50;
+        }
+        .popup-section {
+            margin: 14px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .popup-label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.95em;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .popup-value {
+            color: #555;
+            line-height: 1.6;
+            margin-top: 4px;
+        }
+        .popup-list {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+        .popup-list li {
+            margin: 6px 0;
+            color: #555;
+            line-height: 1.5;
+        }
+        .tag {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin: 2px;
+        }
+        .success-badge {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+        }
+        .challenge-badge {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+        }
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(180, 189, 161, 0.7); /* 0.7 = more see-through */
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            text-align: left;
+            backdrop-filter: blur(6px); /* optional: blur the map behind for readability */
+        }
+
+
+      .header h1 {
+        font-family: 'WDXL Lubrifont JP N', 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', Meiryo, sans-serif;
+        font-weight: 900;
+          font-size: 2em;
+          color: #2c3e50;
+          margin: 0;
+      }
+
+      .header p {
+        font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', Meiryo, sans-serif;
+          margin: 5px 0 0 0;
+          color: #000000;
+          font-size: 0.9em;
+      }
+        .leaflet-container {
+            cursor: default !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>リーディングDXスクールの成果</h1>
+        <p>クリックすると詳細が表示されます。</p><small>地図をドラッグして動かせます。</small>
+    </div>
+    <div id="map"></div>
+    <script>
+        const map = L.map('map', {
+            dragging: true,
+            touchZoom: false,
+            scrollWheelZoom: true,
+            doubleClickZoom: false,
+            boxZoom: false,
+            keyboard: false,
+            zoomControl: false,
+            zoomAnimation: true,
+            markerZoomAnimation: true
+        }).setView([36.5, 139], 7);
+        // Add tile layer with better styling
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors © CARTO',
+            subdomains: 'abcd',   // optional, improves tile loading
+            maxZoom: 19,          // maximum zoom level
+            minZoom: 1            // optional: minimum zoom level
+        }).addTo(map);
+
+        // GeoJSON data
+        const schoolsData = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [137.5619744, 36.9557844]
+      },
+      "properties": {
+        "school_name": "朝日町立さみさと小学校",
+        "overview": "生成AIを活用した授業改善（小学6年生 外国語科）",
+        "activities": [
+          "Before and Afterクイズを読み手に分かりやすく書く"
+        ],
+        "tools": [
+          "みんなのコード"
+        ],
+        "outcomes": [
+          "子供たちが生成AIを活用することでそれぞれの課題に合った学習が可能となり、個の学習過程において間違いや正しい表現に気付いたり詳しく調べたりして達成感を得ることができた。",
+          "課題解決に有効なプロンプトとICTを活用した学習の流れを提示することで、子供が主体的に学習活動を進めることができた。",
+          "考えた文章を読み合う場を設定することで互いに学び合い、考えを広めたり深めたりすることができ、協働的な学びにつながった。"
+        ],
+        "student_reactions": "自分たちの文章を生成AIに修正させたものを「たたき台」として、自分なりに何度も推敲する場面での活用"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4723041,34.584402
+        ]
+      },
+      "properties": {
+        "school_name": "堺市立月州中学校",
+        "location": "大阪府堺市",
+        "overview": "オンライン出願システムのシミュレーション用ダミー生徒情報を作成。",
+        "activities": [
+          "ダミーの生徒情報作成",
+          "サンプル証明写真作成"
+        ],
+        "tools": [
+          "Copilot"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [139.7447252, 35.696143],
+      },
+      "properties": {
+        "school_name": "千代田区立九段中等教育学校",
+        "location": "東京都",
+        "overview": "学校用にカスタマイズした独自生成AIシステムの開発",
+        "activities": [
+          "文書作成および校正作業の補助",
+          "生成AI活用研修会",
+          "情報科プロンプトエンジニアリング",
+          "英語科での生成AI活用",
+          "国語科での生成AI活用",
+          "総合的な学習の時間での生成AI活用"
+        ],
+        "tools": [
+          "otomotto",
+          "Adobe Firefly"
+        ],
+        "topics": [
+          "生成AIの理解",
+          "プロンプトエンジニアリング",
+          "英語文章の理解と表現",
+          "国語における新たな価値の創造"
+        ],
+        "outcomes": [
+          "事務処理時間の50%削減",
+          "生徒が自分自身で推敲する能力の向上",
+          "英語科での表現力向上"
+        ],
+        "successes": [
+          "生成AIを活用した効率化の実現",
+          "生徒の英語レベルや興味に合った英文を生成"
+        ],
+        "challenges": [
+          "良い英訳と良いプロンプトの課題",
+          "生成AIを使う場面での明確化"
+        ],
+        "student_reactions": [
+          "生徒が自分自身で推敲することができた"
+        ],
+        "teacher_observations": [
+          "生成AIを活用することで文書作成と表現がスムーズになった"
+        ],
+        "recommendations": [
+          "生成AIを言語学習の手段として目的を間違えないようにする"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates":[137.033870, 35.2842406]
+      },
+      "properties": {
+        "school_name": "春日井市立藤山台中学校",
+        "overview": "AIを活用した学校業務の効率化と教育活動の充実を図るためのパイロットプログラム。",
+        "activities": [
+          "地域・保護者のご意見等への対応補助",
+          "夏休みの課題 読書感想文のWEB提出とアドバイス",
+          "情報活用学習において、生成AIの使い方を学ぶ",
+          "水泳の学習において、自己の課題を解決するための方法を考える"
+        ],
+        "tools": [
+          "Google Gemini",
+          "Google Classroom",
+          "NHK for School"
+        ],
+        "topics": [
+          "生成AIの仕組み、使い方、注意点",
+          "読書感想文の作成とアドバイス",
+          "水泳の学習における課題解決"
+        ],
+        "outcomes": "生成AIを活用した効率的な対応と学習の促進。",
+        "successes": "生成AIによる効率的な対応と心理的負担の軽減。",
+        "challenges": "生成AIの提案に対する法令や判断例の根拠の必要性。",
+        "student_reactions": "生成AIを使ってみて特徴や注意点を体感。",
+        "teacher_observations": "生成AIの活用により、必要な対応を効率的に行うことができた。",
+        "recommendations": "生成AIの提案を法令や判断例を根拠とした塩対応のものではなく驚かされるものにする。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        139.798850, 33.1187908
+        ]
+      },
+      "properties": {
+        "school_name": "八丈町立三根小学校",
+        "location": "八丈町",
+        "overview": "学校行事の改善を目的に、教員や保護者の意見を効率的に収集し、データに基づいた意思決定を行うために実施。",
+        "participants": "小学校5年生 児童",
+        "activities": [
+          "AIジャンケンマシーンの体験",
+          "Quick,Draw!を活用したAIの学習プロセス体験",
+          "NHK for Schoolを活用した生成AIの仕組みや特徴について学習",
+          "AIの活用例を考え、グループで議論"
+        ],
+        "tools": [
+          "Googleフォーム",
+          "ChatGPT-4",
+          "生成AIモデルプログルラボ",
+          "AIジャンケンマシーン",
+          "Quick,Draw!"
+        ],
+        "topics": [
+          "生成AIの基本的な仕組み",
+          "AIの活用方法"
+        ],
+        "outcomes": "生成AIの基本的な仕組みを理解し、活用の可能性を感じる児童が増加。",
+        "successes": "適切なプロンプトを使い、より良い回答を引き出せるスキルの向上。",
+        "challenges": "情報の真偽を見極める力が必要。",
+        "student_reactions": "生成AIの活用方法を考え、積極的に意見を出すようになった。",
+        "teacher_observations": "生成AIを用いた創造的な学びを推進することが求められる。",
+        "recommendations": "多様な教材での活用事例を増やし、生成AIを用いた創造的な学びを推進することが求められる。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        135.11437, 34.2654806
+        ]
+      },
+      "properties": {
+        "school_name": "和歌山市立八幡台小学校",
+        "overview": "リーディングDXスクール事業【AIパイロット校】として、ICT活用協議会を実施。",
+        "activities": [
+          "授業の見直しを話し合い",
+          "意見をもとに話し合いをスムーズに進行",
+          "AIの要約機能を使い、協議会の内容をまとめる"
+        ],
+        "tools": [
+          "ICTツール",
+          "AIの要約機能"
+        ],
+        "successes": [
+          "授業改善のための工夫のきっかけが得られた",
+          "ICTツールの活用により、発表がわかりやすかった"
+        ],
+        "challenges": [
+          "授業改善のための時間が不足"
+        ],
+        "teacher_observations": [
+          "授業改善のための工夫のきっかけが得られた",
+          "授業者の話し合いの時間を生み出すことができた"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          132.460, 34.4211224
+        ]
+      },
+      "properties": {
+        "school_name": "広島立牛田中学校",
+        "location": "広島県",
+        "overview": "情報資源を適切に管理するため、生徒が作成したドキュメント類の編集権限などを、確実かつ効率的に設定する必要がある。",
+        "participants": {
+          "grade": "1年",
+          "classes": 5,
+          "students": 152
+        },
+        "activities": [
+          "Googleドライブ上のファイルの編集権限を自動で変更",
+          "Googleドライブのファイルを自動でバックアップ",
+          "生成AIの利用に関するガイドラインに基づいた授業計画・実施"
+        ],
+        "tools": [
+          "iPad (第7世代) iOS17",
+          "生成AI (ChatGPT4o 無料版)",
+          "Google Application Script"
+        ],
+        "topics": [
+          "生成AIの利用の注意事項",
+          "生成AIの特徴と危険性",
+          "生成AIのプロンプト学習",
+          "情報収集",
+          "整理・分析",
+          "まとめ・表現"
+        ],
+        "outcomes": [
+          "ガイドラインに基づいた授業設計",
+          "情報活用能力の一部として生成AIの仕組みの理解が進んだ",
+          "生成AIを実際に使って、体験することができた"
+        ],
+        "successes": [
+          "トリガー設定による手動作業が減少",
+          "他の業務に時間を割くことが可能に"
+        ],
+        "challenges": [
+          "的確な回答を導き出すにはプロンプトの中身が大切である",
+          "授業で生成AIを使うには練習がさらに必要"
+        ],
+        "student_reactions": "生徒自身で考えたことをまとめて文章に対し、適切に生成AIを利用。",
+        "teacher_observations": "現状の手動作業の多くは自動化に移行可能。",
+        "recommendations": "手動作業の多くは自動化に移行可能であるため、さらなる効率化が期待できる。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.55879, 31.61051
+        ]
+      },
+      "properties": {
+        "school_name": "鹿児島市立鹿児島玉龍高等学校",
+        "location": "鹿児島県",
+        "overview": "AIを活用した教育プログラムの実施",
+        "participants": {
+          "学年": [
+            "1年生",
+            "2年生",
+            "3年生"
+          ],
+          "選択科目": [
+            "物理選択者",
+            "生物選択者",
+            "美術選択者"
+          ]
+        },
+        "activities": [
+          "Copilotによる数学Bの教材研究",
+          "生成AIを活用した学校評価アンケート分析",
+          "ChatGPTを用いた理科実験計画の立案",
+          "ChatGPTとGammaを用いたスライド作成",
+          "ChatGPTを用いた美術デザインの下書き"
+        ],
+        "tools": [
+          "Copilot",
+          "ChatGPT",
+          "Gamma"
+        ],
+        "topics": [
+          "数学の推定における母集団と標本の役割",
+          "保護者アンケートの意見分析",
+          "理科実験の計画立案",
+          "スライド作成による学習内容の復習",
+          "美術デザインの考案"
+        ],
+        "outcomes": [
+          "数学の理解が深まる",
+          "保護者の意見を具体的に分析",
+          "実験計画の立案がスムーズに",
+          "スライド作成による学習の深まり",
+          "デザインの具体化と表現力の向上"
+        ],
+        "successes": [
+          "生徒がAIを活用して積極的に学習",
+          "具体的な意見交換が可能に",
+          "実験計画の効率的な立案",
+          "スライド作成の効率化",
+          "デザインの具体化"
+        ],
+        "challenges": [
+          "AIの提案をどのように活用するかの判断",
+          "生徒の自主性をどのように引き出すか"
+        ],
+        "student_reactions": [
+          "AIの活用により学習が深まった",
+          "具体的な意見交換ができた",
+          "デザインの具体化ができた"
+        ],
+        "teacher_observations": [
+          "AIを活用することで新たな学びの機会が生まれた",
+          "生徒の自主性が引き出された"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.2953054,
+          35.7760102
+        ]
+      },
+      "properties": {
+        "school_name": "成田市立加良部小学校",
+        "location": "千葉県",
+        "overview": "6年理科の授業での質問や仮説、考察のまとめと、3年道徳における指導案作りでの活用",
+        "participants": {
+          "grade_6": "6年生",
+          "grade_3": "3年生"
+        },
+        "tools": "スタディポケット for TEACHER(GPT-4)",
+        "activities": [
+          "6年理科での質問や仮説、考察のまとめ",
+          "3年道徳での指導案作り"
+        ],
+        "outcomes": [
+          "生徒がAIに考えをまとめさせることで、時間の短縮ができた",
+          "視覚的に印象が残る指導案を作成"
+        ],
+        "successes": [
+          "生徒がAIを活用して自分の考えを整理できた",
+          "視覚的に印象が残る指導案を作成できた"
+        ],
+        "challenges": [
+          "AIの出力を正確に言葉にして入力するためのスキルが必要",
+          "生徒がAIの出力を参考にして指導案を作成するのが難しい"
+        ],
+        "student_reactions": "AIを活用することで自分の考えを整理することができた",
+        "teacher_observations": "AIの活用により生徒の考えを整理する時間が短縮された",
+        "recommendations": "AIの活用方法をさらに工夫し、より効果的に活用する方法を模索する必要がある"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.342404,
+          36.0971654
+        ]
+      },
+      "properties": {
+        "school_name": "かすみがうら市立霞ヶ浦北小学校",
+        "location": "茨城県かすみがうら市",
+        "overview": "AIを活用した単元計画の補助と学校行事の宣伝活動を実施。",
+        "activities": [
+          "ChatGPTを使用したルーブリックの作成",
+          "デザインツール内の生成AI機能を活用したポスター作成と掲示"
+        ],
+        "tools": [
+          "ChatGPT",
+          "デザインツールの生成AI機能"
+        ],
+        "topics": [
+          "SDGs"
+        ],
+        "outcomes": [
+          "単元計画のイメージが付きやすくなった",
+          "作成時間の短縮",
+          "親しみやすい画像が生成され、注視されるようになった"
+        ],
+        "successes": [
+          "ルーブリックを参考にした指導案の作成",
+          "児童の創作意欲を喚起"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.7253379,
+          35.2427156
+        ]
+      },
+      "properties": {
+        "school_name": "愛知県立杏和高等学校",
+        "overview": "リーディングDXスクール事業の一環としてAIパイロット校としての取り組み。",
+        "activities": [
+          "静的サイトジェネレーターによるWebサイト構築",
+          "生成AIユーザー登録"
+        ],
+        "tools": [
+          "生成AI",
+          "静的サイトジェネレーター"
+        ],
+        "successes": [
+          "生成AIはHTML・CSSの出力と相性が良い",
+          "生徒のアカウント作成を円滑に完了"
+        ],
+        "challenges": [
+          "入力速度や文字作成に関する技術的課題",
+          "基本的なキーボードスキルの重要性"
+        ],
+        "teacher_observations": [
+          "生成AIの効果的な活用には総合的な情報活用能力が必要"
+        ],
+        "recommendations": [
+          "新しいテクノロジーを主体的に活用するための指導方法の確立"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          131.14868, 33.2749518
+        ]
+      },
+      "properties": {
+        "school_name": "玖珠町立塚脇小学校",
+        "location": "大分県玖珠町",
+        "overview": "各教科で、指導に困りがあったり、アイデアがほしいとき、生成AIを活用し、その生成物を指導の参考とした。また、それらを職員で共有し、誰もが使える環境をめざした。",
+        "participants": {
+          "grade": "小学3年生"
+        },
+        "activities": [
+          "各教科での活用",
+          "職員間の共有",
+          "授業者によるチャットの書き込み"
+        ],
+        "tools": [
+          "生成AI (Gemini)"
+        ],
+        "outcomes": [
+          "自分のアイデアとAIのアイデアを比較し、さらに良いものを作成するためのアイデア創出が可能となった。",
+          "業務を整理していない人に、どんな授業だったのか容易に伝えることができた。"
+        ],
+        "successes": [
+          "生成AIを指導の参考として活用し、職員間で共有することで、誰もが使える環境を整えた。",
+          "授業のまとめを生成AIに作成してもらい、内容を共有することができた。"
+        ],
+        "challenges": [
+          "チャットの内容が少ないと、一般的な授業のまとめになる傾向がある。"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.8341365,
+          38.9329266
+        ]
+      },
+      "properties": {
+        "school_name": "山形県立酒田光陵高等学校",
+        "location": "山形県",
+        "overview": "生成AIを活用するための環境整備を行い、情報活用能力の向上を目指す。",
+        "participants": {
+          "進路指導担当者": "3年次生"
+        },
+        "activities": [
+          "生成AIの利用に関する研修会",
+          "生成AI基礎講座の実施",
+          "グレゴリオ聖歌について生成AIを用いて深める",
+          "情報システムの設計における生成AIの活用"
+        ],
+        "tools": [
+          "ChatGPT",
+          "音楽生成AI (SunoAI)"
+        ],
+        "topics": [
+          "生成AIの倫理",
+          "進路指導における生成AIの活用",
+          "生成AIを用いた音楽制作",
+          "情報システム設計"
+        ],
+        "outcomes": [
+          "生徒の情報活用能力の向上",
+          "教員の業務負担の軽減"
+        ],
+        "successes": [
+          "生成AIを活用した授業を受けた生徒の83%が学習効果を感じている"
+        ],
+        "challenges": [
+          "生成AIの活用に対する理解が不十分な教員がいる",
+          "生徒にとってはプログラミング学習が難しい"
+        ],
+        "student_reactions": [
+          "AIについてもっと知りたいという意欲が高まった",
+          "自分の表現したいことが明確になった"
+        ],
+        "teacher_observations": [
+          "生成AIの活用により教員の負担が軽減された",
+          "プロンプトの書き方や使い方の指導が必要"
+        ],
+        "recommendations": [
+          "生成AI活用のためのガイドラインの更新",
+          "プロンプト共有の仕組み作り"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.933625,
+          37.1588099
+        ]
+      },
+      "properties": {
+        "school_name": "新潟県立国際情報高校",
+        "location": "新潟県",
+        "overview": "AIを活用した教育プログラムのパイロット実施",
+        "activities": [
+          "ChatGPTでのディベートシナリオ作成",
+          "ChatGPTでの文書作成",
+          "音速測定実験のデータ処理",
+          "国語小説の創作と評価"
+        ],
+        "tools": [
+          "ChatGPT",
+          "ストップウォッチアプリ",
+          "Googleスプレッドシート"
+        ],
+        "outcomes": [
+          "作業の簡素化",
+          "データ処理の効率化",
+          "生徒の創造力と表現力の向上"
+        ],
+        "successes": [
+          "作成の手間を大幅に削減",
+          "データの有効性を高める",
+          "生徒の反応が良好"
+        ],
+        "challenges": [
+          "専門性の高いソフトウェアの開発",
+          "従来の文書作成に反映されない思考の生成"
+        ],
+        "student_reactions": [
+          "生徒同士での積極的な意見交換",
+          "AIによる創作物への興味"
+        ],
+        "teacher_observations": [
+          "生成AIの可能性に驚き",
+          "優秀な相棒としての活用可能性"
+        ],
+        "recommendations": [
+          "伝えたい思いを重視したプロンプトの入力",
+          "活用範囲の拡大"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.8513349,
+          37.042625
+        ]
+      },
+      "properties": {
+        "school_name": "いわき市立内郷第一中学校",
+        "location": "福島県いわき市",
+        "overview": "生成AIを活用した事務作業支援と新キャラクター作成を行う。",
+        "activities": [
+          "音声認識アプリを用いた生徒会総会での議事録作成",
+          "生成AIを活用した新キャラクター作成"
+        ],
+        "tools": [
+          "生成AI",
+          "音声認識アプリ"
+        ],
+        "outcomes": "効率的に学校行事を進めることができた。",
+        "successes": "従来の手書き記録及びその後の整理の時間を短縮。",
+        "challenges": "生成AIからの提案は生徒だけでは思いつかないものもあり、参考になった。",
+        "recommendations": "生成AIのアドバイスをもとに新たなアイデアが浮かぶことがある。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.7116145,
+          36.093902
+        ]
+      },
+      "properties": {
+        "school_name": "幸手市立行幸小学校",
+        "location": "埼玉県",
+        "overview": "様々な教育的ニーズがある子どもたちに対する家庭での支援方法について、情報を収集し、精査した内容を保護者に提供し、支援の在り方について、ともに考える。",
+        "participants": "第4学年",
+        "activities": [
+          "教員が生成AIを活用",
+          "詩を味わう授業"
+        ],
+        "tools": [
+          "Copilot",
+          "Gemini",
+          "ChatGPT"
+        ],
+        "topics": [
+          "詩の構成や内容の大体を意識しながら音読",
+          "詩を読んで理解したことに基づいて、感想や考えをもつ"
+        ],
+        "outcomes": "生成AIの考えを参考に、どちらの解釈が自分に近いかを考えたり、自分の考えを見直したりする姿勢が見られた。",
+        "successes": "生成AIの情報は、指導に活かすことができた。",
+        "challenges": "生成AIの考えに対して、児童に提示する際、発達の段階や情報活用能力の育成状況等に応じて、提示の言葉づかいに留意する必要がある。",
+        "student_reactions": "「ぼくは川」という考えのどちらも詩の魅力を深めることを児童が感じ取っていた。",
+        "teacher_observations": "教科教育の視点からも、生成AIの情報は、指導に活かすことができた。",
+        "recommendations": "発達の段階や情報活用能力の育成状況等に応じて、提示の言葉づかいに留意する必要がある。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.6592, 36.096002
+        ]
+      },
+      "properties": {
+        "school_name": "久喜市立砂原小学校",
+        "location": "埼玉県",
+        "overview": "AIを活用した教育プログラムのパイロット実施",
+        "participants": [
+          {
+            "grade": "小学1年生",
+            "activities": [
+              "朝会議話のアイディア出し",
+              "生活目標の伝え方"
+            ],
+            "tools": [
+              "Gemini"
+            ],
+            "topics": [
+              "互いの意見を大切にして話し合う"
+            ],
+            "outcomes": "生活目標を分かりやすく伝える方法を学ぶ"
+          },
+          {
+            "grade": "小学5年生",
+            "activities": [
+              "生成AIを使った文章の推敲"
+            ],
+            "tools": [
+              "みんなで生成AIコース"
+            ],
+            "topics": [
+              "文章に説得力をもたせる"
+            ],
+            "outcomes": "説明力のある議論の展開の仕方を学ぶ"
+          }
+        ],
+        "successes": [
+          "生成AIを活用したフィードバックが即時に得られる",
+          "具体例を示すことで理解が深まる"
+        ],
+        "challenges": [
+          "子どもたちの身近な体験と結びつけることが大切",
+          "生成AIが提示する解答の質に依存することへの懸念"
+        ],
+        "recommendations": [
+          "具体例を示すことで、より理解が深まるようにする",
+          "生成AIの解答の質を評価し、適切な指導を行う"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.7581883,
+          34.997395
+        ]
+      },
+      "properties": {
+        "school_name": "名古屋市立吉根中学校",
+        "overview": "AIを活用した教育プログラムの実施",
+        "participants": {
+          "grade": [
+            "2年",
+            "3年",
+            "1年"
+          ]
+        },
+        "activities": [
+          "理科の教材作成における活用",
+          "校長式辞のたたき台の作成",
+          "動画教材を活用して生成AIについて学ぶ",
+          "生成AIを使った個別最適な学びと協働的な学びの一体的な充実",
+          "生成AIを活用した英会話学習"
+        ],
+        "tools": [
+          "Microsoft365 Copilot Chat",
+          "ChatGPT"
+        ],
+        "outcomes": [
+          "短時間でのプログラム作成",
+          "業務の効率化",
+          "生徒の理解促進",
+          "英会話学習の楽しさ向上"
+        ],
+        "successes": [
+          "短時間でのプログラム作成が可能",
+          "業務の効率化に寄与",
+          "生徒の積極的な取り組み"
+        ],
+        "challenges": [
+          "生徒が自分の考えを表現することの重要性"
+        ],
+        "student_reactions": [
+          "生成AIの回答をそのまま写すのではなく、自分の考えを表すことが大切"
+        ],
+        "teacher_observations": [
+          "生成AIを活用することで、教育の業務効率化に寄与"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.7812152,
+          35.7746626
+        ]
+      },
+      "properties": {
+        "school_name": "足立区立西新井小学校",
+        "location": "東京都足立区",
+        "tools": [
+          "Google Gemini"
+        ],
+        "activities": [
+          "新年度学級編成の時間短縮",
+          "通知表初見作成の補助"
+        ],
+        "successes": [
+          "学級編成の時間短縮",
+          "通知表作成の効率化"
+        ],
+        "challenges": [
+          "児童の個票作成とその特性を考慮した学級編成",
+          "通知表の文章表現の改善"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        138.554, 35.6533699
+        ]
+      },
+      "properties": {
+        "school_name": "山梨県甲府市立石田小学校",
+        "overview": "AIを活用した教育と校務の効率化を目指すパイロットプログラム。",
+        "participants": "6年生",
+        "activities": [
+          "朝の会や帰りの会の先生のお話作成",
+          "校務のスマート化",
+          "生成AI自体を学ぶ段階"
+        ],
+        "tools": [
+          "甲府市Teachers生成AI",
+          "Gemini"
+        ],
+        "topics": [
+          "生成AIの特徴と人間の創造力",
+          "校務の効率化"
+        ],
+        "outcomes": "児童に対してどんなことを話したらよいか若い教師が具体的な話のヒントを得ることができた。",
+        "successes": "プロンプト例があらかじめ示されているので、利用がしやすい。",
+        "challenges": "プロンプトの加除修正が可能。",
+        "student_reactions": "児童にAI関連企業の会長からの講演を受ける機会があった。",
+        "teacher_observations": "教師が子どもの心をつかむ具体的な話のヒントを短時間で得ることができた。",
+        "recommendations": "各自が自身の工夫に直して活用することを職員全体で共通理解。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        138.51002,38.3194743
+        ]
+      },
+      "properties": {
+        "school_name": "佐渡市立内海府小学校",
+        "location": "新潟県",
+        "overview": "児童生徒の指導にかかわる業務の支援として、AIを活用したプログラムを実施。",
+        "participants": {
+          "grade": "3年生",
+          "class": "小学校3年生クラス"
+        },
+        "duration": "2025年6月",
+        "activities": [
+          "プロンプトの作成",
+          "授業資料や小テストの作成"
+        ],
+        "tools": [
+          "Claude",
+          "Google Notebook LM"
+        ],
+        "topics": [
+          "プロンプトを生成AIに作らせるためのプロンプト",
+          "生成AIを活用した授業資料や小テストの作成"
+        ],
+        "successes": [
+          "プロンプト自体を生成AIに作らせることで、時間を短縮し、業務効率の一助として期待される"
+        ],
+        "challenges": [
+          "AIの生成したコンテンツを、よりユーザーの意図に沿った形で使用していくこと"
+        ],
+        "recommendations": [
+          "AIの生成物の信頼性を事前に確認する必要がある"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        130.443565, 33.5212366
+        ]
+      },
+      "properties": {
+        "school_name": "春日市立春日西中学校",
+        "location": "福岡県",
+        "overview": "リーディングDXスクール事業の一環として、AI倫理教育のパイロットプログラムを実施。",
+        "activities": [
+          "教員向け研修会の実施",
+          "生徒への研修会の開催",
+          "1年国語科での生成AIを用いた紹介文作成活動",
+          "2年外国語科での生成AIを用いた比較表現活動",
+          "2年社会科での生成AIを用いた考えをまとめる活動",
+          "2年理科での生成AIを用いた学習の見通しを立てる活動"
+        ],
+        "tools": [
+          "生成AI",
+          "ChatGPT"
+        ],
+        "outcomes": [
+          "教員が生成AIを指導案作成時に活用",
+          "生徒が生成AIを活用した授業に慣れ、積極的に情報を得る姿勢が見られた",
+          "ChatGPTの活用で、習得してほしい視点を点数化"
+        ],
+        "successes": [
+          "教員が使用することで、ChatGPTの年齢制限にかかわらず授業に組み込めた",
+          "生成AIが誤りを含む可能性を理解しつつ、実際の情報と比較しながら学習"
+        ],
+        "challenges": [
+          "価値判断を含めた課題設定",
+          "活用モデルが曖昧である場合、指導者側でのツールの制限が難しい",
+          "知識をどれだけ習得しているかの見取りが難しい"
+        ],
+        "student_reactions": [
+          "生徒が生成AIを活用した授業に慣れ、積極的に情報を得ようとする姿勢が見られた"
+        ],
+        "teacher_observations": [
+          "教員が生成AIを指導案作成時に活用",
+          "生徒が生成AIを学習の伴走者として活用し、個々のペースで学びながら、スライドの共有など他者を照合できることで生徒の学習の手助けとなった"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [139.965517, 35.861152]
+      },
+      "properties": {
+        "school_name": "千葉県立東葛飾中学校",
+        "overview": "AIを活用した教育プログラムの実施。生成AIや対話型AIの仕組みやリスク、活用方法について学ぶ。",
+        "participants": "中学2年生と3年生",
+        "activities": [
+          "授業準備でのワークシート作成",
+          "生成AIの仕組みやリスクについての学び",
+          "生成AIの活用方法についての学び",
+          "プレゼンテーションにおける質疑応答練習"
+        ],
+        "tools": [
+          "GPT-4",
+          "自然言語処理モデル GPT-4o mini",
+          "ChatGPT"
+        ],
+        "topics": [
+          "生成AIとは何か",
+          "認識・識別AIと生成AI",
+          "機械学習と強化学習",
+          "対話型AIの活用"
+        ],
+        "student_reactions": [
+          "想定外の回答をもらい、自分の考えを深めることができた。",
+          "気軽に自分のペースで練習でき、本番の発表に自信を持てた。",
+          "新たな視点やアイディアを得られた。"
+        ],
+        "teacher_observations": [
+          "AIの使い方を学ぶことで生徒が積極的に学習に取り組むようになった。",
+          "生徒が自分のペースで学習できる環境を提供できた。"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.6926458,
+          35.5327936
+        ]
+      },
+      "properties": {
+        "school_name": "川崎市立南河原中学校",
+        "location": "神奈川県川崎市",
+        "tools": [
+          "ChatGPT",
+          "Google Workspace for Education"
+        ],
+        "activities": [
+          "制度に関する事例の情報収集",
+          "プロンプト集を作るためのアイデア出し"
+        ],
+        "successes": [
+          "業務効率化を実現",
+          "生徒が積極的に参加"
+        ],
+        "challenges": [
+          "情報共有の仕組みの改善"
+        ],
+        "teacher_observations": [
+          "教職員も他者の観点から生徒的に学ぶ"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        130.7293141,32.816391
+        ]
+      },
+      "properties": {
+        "school_name": "熊本市立桜山中学校",
+        "location": "熊本県",
+        "overview": "AIを活用した教育プログラムの実施により、生徒の学習を支援する取り組み。",
+        "activities": [
+          "ルーブリック評価設定",
+          "自動採点システムの利用",
+          "発表会での意見の集約",
+          "通知表所見の作成",
+          "学校通信の文章作成",
+          "外国籍の生徒や保護者への文章翻訳",
+          "生成AIの仕組みと利便性、リスクの学習",
+          "意見文を書く",
+          "ニューヨークの旅行プランを考える",
+          "修学旅行の行程作成",
+          "実験計画づくり",
+          "酸とアルカリを混ぜたときの変化",
+          "英語によるディベート"
+        ],
+        "tools": [
+          "生成AI",
+          "表計算ソフト",
+          "翻訳アプリ"
+        ],
+        "topics": [
+          "生成AIの利便性とリスク",
+          "意見文の作成",
+          "旅行プランの作成",
+          "実験計画の立案",
+          "物質の特定",
+          "英語ディベート"
+        ],
+        "outcomes": "生徒がAIを活用して情報を収集し、意見をまとめる力を向上させた。",
+        "successes": "生成AIを活用することで、情報収集や意見の整理が効率的に行えた。",
+        "challenges": "生成AIの使用におけるプロンプトの工夫が必要。",
+        "student_reactions": "生徒は生成AIを活用することで、自分の意見をより具体的に表現できるようになった。",
+        "teacher_observations": "生成AIの活用により、生徒の理解が深まった。",
+        "recommendations": "生成AIの活用をさらに進めるために、プロンプトの工夫を続けることが重要。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.0183945,
+          37.84492
+        ]
+      },
+      "properties": {
+        "school_name": "新潟市立大野小学校",
+        "location": "新潟県",
+        "overview": "AIを活用した教育のパイロットプログラムを実施し、外国にルーツを持つ児童への支援や、授業の方法提案、意見の集約などを行った。",
+        "activities": [
+          "外国にルーツを持つ児童への支援",
+          "意見や質問の整理・分類",
+          "実験の方法を提案し、教科書と比較",
+          "学級目標達成のための活動内容を提案",
+          "個人の考察を学級全体で集約し、全体検討"
+        ],
+        "tools": [
+          "ChatGPT-4o",
+          "Googleフォーム",
+          "スプレッドシート"
+        ],
+        "outcomes": [
+          "発音のコツを確認し、会話に活用",
+          "意見や質問を効率的に整理・分類",
+          "実験方法の有効性を比較検討",
+          "新しい提案を全員で納得して取り入れる",
+          "個人の考察をまとめて共有"
+        ],
+        "successes": [
+          "発音の改善により、即座に会話に活用できた",
+          "限られた時間内で効率的に質問に回答",
+          "実験方法の比較により、効果的な方法を選択",
+          "話し合いを通じて新しい提案を採用"
+        ],
+        "challenges": [
+          "意見や質問の全体像を把握する必要があった",
+          "実験方法の違いを理解し、適切な方法を選ぶ必要があった"
+        ],
+        "student_reactions": [
+          "発音が改善され、会話がスムーズになった",
+          "新しい提案を理解し、実験に臨むことができた"
+        ],
+        "teacher_observations": [
+          "AIを活用することで、児童の理解が深まった",
+          "提案された活動を通じて、児童の積極的な参加が見られた"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.2574107,
+          35.5870318
+        ]
+      },
+      "properties": {
+        "school_name": "相模原市立中野中学校",
+        "overview": "リーディングDXスクール事業の一環として、生成AIを活用した授業を実施。生徒が自分の考えを深めるためのシミュレーションや対話を行う。",
+        "activities": [
+          "授業でのシミュレーション",
+          "生成AIを用いた課題解決プロンプトの実施",
+          "ジグソー法を活用した学び",
+          "伝え方をサポートしてもらう活用",
+          "画像生成AIの活用",
+          "生成AIによる新たな視点を得るメタ認知",
+          "動画から課題を把握し、生成AIにアドバイスをもらう"
+        ],
+        "tools": [
+          "ChatGPT",
+          "Figma",
+          "Canva"
+        ],
+        "topics": [
+          "生成AIの活用目的",
+          "主体的・対話的で深い学び",
+          "和歌の心情・情景理解",
+          "健康な生活と疾病の予防",
+          "バスケットボールの動作分析"
+        ],
+        "outcomes": "生徒が生成AIを活用して考えを深める姿勢が見られた。具体的なアドバイスを得ることで、考えを修正・深化できた。",
+        "successes": "生成AIを活用することで、生徒が自分の考えを深め、対話を通じて理解を深めることができた。",
+        "challenges": "生成AIの使い方を学ぶ際には、教員の支援が重要である。",
+        "student_reactions": "生徒は生成AIを活用し始めてまだ日が浅いが、アドバイスをもらう意識が備わっており、自身の考えをしっかりと持って活用している姿が見られた。",
+        "teacher_observations": "生成AIの使い方を学ぶ際には、教員の支援が重要である。生徒が生成AIを使う目的と活用方法が、わかりやすく図式化されている。",
+        "recommendations": "生成AIの活用を通じて、生徒が主体的に学ぶ機会を増やすことが重要である。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.3657805,
+          43.062729
+        ]
+      },
+      "properties": {
+        "school_name": "札幌市立中央小学校",
+        "location": "北海道札幌市中央区",
+        "overview": "AI倫理教育のパイロットプログラムとして、AIツールを活用した教育活動を実施。",
+        "participants": {
+          "grade": "5年生"
+        },
+        "activities": [
+          "文章チェックの効率化",
+          "予算内の最適解を導き出すアプローチ",
+          "AI浦島太郎の考察",
+          "AIバイアスへの気付き",
+          "プログラミングで学ぶ機械学習",
+          "生成AIの活用を振り返る"
+        ],
+        "tools": [
+          "マイGPT",
+          "ChatGPT"
+        ],
+        "topics": [
+          "AI倫理",
+          "AIバイアス",
+          "機械学習",
+          "生成AI"
+        ],
+        "outcomes": "作業効率が向上し、AIの活用により新しい考え方や気付きが得られた。",
+        "successes": "AIツールの活用により、効率的な校正や予算管理が実現。",
+        "challenges": "AIバイアスの認識とその影響を理解することが課題。",
+        "student_reactions": "AIを活用することで新しい視点が得られ、学習意欲が向上。",
+        "teacher_observations": "生成AIが学びの伴走者として有効であると感じた。",
+        "recommendations": "AIの活用を通じて、さらなる教育の効率化と新しい学びの形を模索することが重要。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.0714352,
+          36.0811725
+        ]
+      },
+      "properties": {
+        "school_name": "つくば市立研究学園小学校",
+        "overview": "AIを活用した学校通信の作成支援と学習実践のパイロットプログラム。",
+        "participants": "第5学年",
+        "activities": [
+          "学校通信の作成支援",
+          "生成AIのプロンプトを活用した学習実践"
+        ],
+        "tools": [
+          "生成AI (Copilot)",
+          "スクールAI",
+          "Padlet"
+        ],
+        "outcomes": [
+          "生成AIが短時間で通信の原案を作成し、教員の負担を軽減。",
+          "多様な視点からのアイデアが得られ、個人の癖に偏らない文章が作成可能。",
+          "生成AIを活用することで考えを具体化しやすくなった。"
+        ],
+        "successes": [
+          "生成AIの活用で効率的に通信を作成。",
+          "生成AIのプロンプトを活用し、学習活動を効果的に進行。"
+        ],
+        "challenges": [
+          "ネット上にある文章が中心となるため、校内に合わせた文章にはならない。",
+          "生成AIを活用して複数回の学校通信を作成する中で、独自性が薄れる可能性。",
+          "活動内容を明確化する必要がある。"
+        ],
+        "student_reactions": "生成AIを活用した活動手段を区別して活用できた。",
+        "teacher_observations": "生成AIを活用することで、意見や考えを具体化しやすくなった。",
+        "recommendations": "生成AIのプロンプトを活用し、目的に応じた使い方を明確にする必要がある。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          131.126028,
+          32.813655
+        ]
+      },
+      "properties": {
+        "school_name": "高森町立高森中央小学校",
+        "location": "熊本県",
+        "overview": "児童生徒への補足説明用の資料作成",
+        "participants": {
+          "grade": "6年",
+          "subject": "理科"
+        },
+        "activities": [
+          "Geminiを使用した補足資料の検索",
+          "Geminiから提示された動画を授業で使用"
+        ],
+        "tools": "Gemini",
+        "topics": "火山活動や地震による土地の変化",
+        "teacher_observations": "児童が興味を持ち、理解が深まった",
+        "recommendations": "今後もAIの適用方法を検討"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          143.2121269,
+          42.9311682
+        ]
+      },
+      "properties": {
+        "school_name": "北海道帯広柏葉高等学校",
+        "location": "北海道",
+        "overview": "生成AIを活用した業務の効率化に向けたプログラムの作成や授業の構想を行い、教育利用として生成AIの使い方を学ぶ授業を創出。",
+        "activities": [
+          "プログラムの作成に活用",
+          "授業構想の分析に活用",
+          "生成AIに関する意識調査",
+          "生成AIの活用授業の実施"
+        ],
+        "tools": [
+          "ChatGPT",
+          "Gemini",
+          "Copilot",
+          "NotebookLM",
+          "Google Apps Script"
+        ],
+        "topics": [
+          "生成AIの基礎知識",
+          "生成AIの活用方法",
+          "生成AIによる画像分析",
+          "生成AIによる批評の活用"
+        ],
+        "outcomes": "生成AIの活用により、業務の効率化や教育の質向上が見られた。",
+        "successes": "生成AIを活用したプログラムの自動化に成功。",
+        "challenges": "生成AIの使い方に関する理解の深化が必要。",
+        "student_reactions": "生成AIの活用により、学習意欲が向上。",
+        "teacher_observations": "生成AIの導入により、生徒の理解度が向上。",
+        "recommendations": "生成AIの活用をさらに推進し、教育の質を高めることが推奨される。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.9792136,
+          33.7535398
+        ]
+      },
+      "properties": {
+        "school_name": "苅田町立与原小学校",
+        "location": "福岡県",
+        "overview": "リーディングDXスクール事業の一環として、AI倫理教育のパイロットプログラムを実施。",
+        "activities": [
+          "アンケート結果の整理・分析",
+          "報告書の作成"
+        ],
+        "tools": [
+          "ChatGPT 3.5",
+          "ChatGPT 4.0"
+        ],
+        "successes": "AIを活用したデータの整理・分析が効果的であった。",
+        "challenges": "不正確な情報や不適切な表現が含まれる可能性があるため、AIの出力をそのまま使用することはできない。",
+        "recommendations": "AIの出力を参考にしつつ、最終的な報告書は教員が確認・修正する必要がある。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          127.896108,
+          26.663578
+        ]
+      },
+      "properties": {
+        "school_name": "沖縄県立本部高等学校",
+        "location": "沖縄県",
+        "overview": "AIを活用した校務利用の効率化を目指すパイロットプログラム。",
+        "activities": [
+          "進路活動報告会の実施要項の作成",
+          "生徒会企画の企画書の作成"
+        ],
+        "tools": [
+          "MicrosoftのCopilot"
+        ],
+        "successes": "大幅な資料作成の時間削減",
+        "challenges": "新しい企画を起こす際の0から1の作業がとても苦労する",
+        "student_reactions": "生徒自身が企画をAI利用することで、ほぼ教師の手を借りずに発表会や進路イベントの企画書として職員会合で提案することができた。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          131.6482019,
+          33.2029304
+        ]
+      },
+      "properties": {
+        "school_name": "大分県立情報科学高等学校",
+        "overview": "AIを日常遣いにし、学びの手段を自分で選択できるようにする取り組み。",
+        "activities": [
+          "生徒理解で授業改善",
+          "設問自動管理テストの作成",
+          "文章の作成や校正",
+          "講師のためのアンケート作成",
+          "データの作成",
+          "ソフトウェア開発"
+        ],
+        "tools": [
+          "chatGPT",
+          "Copilot",
+          "Perplexity",
+          "Gemini"
+        ],
+        "successes": "情報活用スタッフの情報提供が全職員の広がりへ。",
+        "challenges": "AIの活用により、アイデア創出のためのプロトタイピングが必要。",
+        "student_reactions": "生徒がAIを活用して問題解決に取り組む姿勢が見られた。",
+        "teacher_observations": "AIの活用により授業の効率化が進んだ。",
+        "recommendations": "生成AIを日常遣いにし、学びの手段を自分で選択することを推奨。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.5009,
+          34.4131
+        ]
+      },
+      "properties": {
+        "school_name": "奈良市立鼓阪小学校",
+        "location": "奈良県奈良市",
+        "overview": "AIを活用した教育プログラムのパイロット事業として、複数のAIツールを使用し、教育現場での活用方法を模索。",
+        "activities": [
+          "生成AIを用いたアイデアのブレインストーミング",
+          "Google翻訳を用いた多言語対応"
+        ],
+        "tools": [
+          "Gemini",
+          "Google翻訳"
+        ],
+        "successes": "生成AIを活用することで、複数人でのアイデア出しが円滑に行われた。",
+        "challenges": "翻訳ツールの使用に際して、誤訳やニュアンスの違いに注意が必要。",
+        "student_reactions": "外国ルーツの子どもたちが安心して授業に参加できるようになった。",
+        "teacher_observations": "AIツールの活用により、授業の効率が向上した。",
+        "recommendations": "AIツールを活用する際は、誤訳やニュアンスの違いに注意し、適切な指導を行うことが重要。"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          127.754019,
+          26.365047
+        ]
+      },
+      "properties": {
+        "school_name": "嘉手納町立嘉手納中学校",
+        "location": "沖縄県嘉手納町",
+        "overview": "AIを活用した教育プログラムのパイロット実施",
+        "participants": {
+          "grades": [
+            "中2",
+            "中3"
+          ],
+          "subjects": [
+            "国語",
+            "英語",
+            "特別支援学級"
+          ]
+        },
+        "activities": [
+          "自然体験学習の事後アンケート分析",
+          "生成AI体験会",
+          "一問一答形式での学習内容理解",
+          "ふり返りフィードバックの作成・活用",
+          "作文の推敲",
+          "イラストコンテストに向けた画像生成",
+          "英会話ロールプレイ集"
+        ],
+        "tools": [
+          "Gemini",
+          "ChatGPT",
+          "NotebookLM",
+          "Adobe Express"
+        ],
+        "outcomes": [
+          "作業効率の向上",
+          "学習意欲の維持",
+          "表現技法の向上",
+          "生徒の積極的な参加"
+        ],
+        "successes": [
+          "AIによる効率的なデータ分析",
+          "生成AIを用いた指導案の作成",
+          "生徒の学習意欲向上"
+        ],
+        "challenges": [
+          "情報量の調整に時間が必要",
+          "実践例の具体性不足",
+          "生成AIの提案をそのまま使うことへの懸念"
+        ],
+        "student_reactions": "楽しみながら学ぶことができた",
+        "teacher_observations": "生徒の学習意欲が維持された",
+        "recommendations": "生成AIの提案を吟味し、適切なサポートと時間管理が必要"
+      }
+    }
+  ]
+};
+
+        // Function to create tooltip content (brief overview on hover)
+        function createTooltipContent(properties) {
+            let html = '<div style="min-width: 200px;">';
+            
+            if (properties.school_name) {
+                html += `<div class="tooltip-title">${properties.school_name}</div>`;
+            }
+            
+            if (properties.location) {
+                html += `<div class="tooltip-location">📍 ${properties.location}</div>`;
+            }
+            
+            // Brief overview or first activity
+            if (properties.overview) {
+                const brief = properties.overview.length > 120 
+                    ? properties.overview.substring(0, 120) + '...' 
+                    : properties.overview;
+                html += `<div class="tooltip-overview">${brief}</div>`;
+            } else if (properties.activities && properties.activities.length > 0) {
+                const firstActivity = Array.isArray(properties.activities) 
+                    ? (typeof properties.activities[0] === 'object' 
+                        ? JSON.stringify(properties.activities[0]) 
+                        : properties.activities[0])
+                    : properties.activities;
+                const brief = firstActivity.length > 100 
+                    ? firstActivity.substring(0, 100) + '...' 
+                    : firstActivity;
+                html += `<div class="tooltip-overview">${brief}</div>`;
+            } else if (properties.tools) {
+                const tools = Array.isArray(properties.tools) 
+                    ? properties.tools.join(', ') 
+                    : properties.tools;
+                html += `<div class="tooltip-overview">${tools}</div>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        // Function to create popup content (detailed info on click)
+        function createPopupContent(properties) {
+            let html = '<div class="popup-content">';
+            
+            // Title
+            if (properties.school_name) {
+                html += `<div class="popup-title">${properties.school_name}</div>`;
+            }
+            
+            // Location
+            if (properties.location) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">所在地</div>
+                    <div class="popup-value">${properties.location}</div>
+                </div>`;
+            }
+            
+            // Overview
+            if (properties.overview) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">プログラム概要</div>
+                    <div class="popup-value">${properties.overview}</div>
+                </div>`;
+            }
+            
+            // Participants & Duration
+            if (properties.participants || properties.duration) {
+                html += `<div class="popup-section">`;
+                if (properties.participants) {
+                    const participantText = typeof properties.participants === 'object' 
+                        ? JSON.stringify(properties.participants, null, 2).replace(/[{}"]/g, '').replace(/,/g, ' / ')
+                        : properties.participants;
+                    html += `<div class="popup-label">参加者</div>
+                             <div class="popup-value">${participantText}</div>`;
+                }
+                if (properties.duration) {
+                    html += `<div class="popup-label" style="margin-top: 8px;">実施期間</div>
+                             <div class="popup-value">${properties.duration}</div>`;
+                }
+                html += `</div>`;
+            }
+            
+            // Activities
+            if (properties.activities) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">実施した活動</div>
+                    <ul class="popup-list">`;
+                const acts = Array.isArray(properties.activities) ? properties.activities : [properties.activities];
+                acts.forEach(act => {
+                    const actText = typeof act === 'object' 
+                        ? (act.name ? `<strong>${act.name}</strong>: ${act.purpose || act.method || ''}` : JSON.stringify(act))
+                        : act;
+                    html += `<li>${actText}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+            
+            // Tools
+            if (properties.tools) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">使用したAIツール・技術</div>
+                    <div class="popup-value">`;
+                const tools = Array.isArray(properties.tools) ? properties.tools : [properties.tools];
+                tools.forEach(tool => {
+                    html += `<span class="tag">${tool}</span>`;
+                });
+                html += `</div></div>`;
+            }
+            
+            // Topics
+            if (properties.topics) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">扱ったトピック</div>
+                    <div class="popup-value">`;
+                const topics = Array.isArray(properties.topics) ? properties.topics : [properties.topics];
+                topics.forEach(topic => {
+                    html += `<span class="tag">${topic}</span>`;
+                });
+                html += `</div></div>`;
+            }
+            
+            // Successes
+            if (properties.successes) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">うまくいった点・成功事例</div>`;
+                const succs = Array.isArray(properties.successes) ? properties.successes : [properties.successes];
+                succs.forEach(s => {
+                    html += `<div class="success-badge">${s}</div>`;
+                });
+                html += `</div>`;
+            }
+            
+            // Challenges
+            if (properties.challenges) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">課題・問題点</div>`;
+                const chals = Array.isArray(properties.challenges) ? properties.challenges : [properties.challenges];
+                chals.forEach(c => {
+                    html += `<div class="challenge-badge">${c}</div>`;
+                });
+                html += `</div>`;
+            }
+            
+            // Outcomes
+            if (properties.outcomes) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">成果・結果</div>
+                    <div class="popup-value">${properties.outcomes}</div>
+                </div>`;
+            }
+            
+            // Student reactions
+            if (properties.student_reactions) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">生徒の反応</div>
+                    <div class="popup-value">${properties.student_reactions}</div>
+                </div>`;
+            }
+            
+            // Teacher observations
+            if (properties.teacher_observations) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">教員の観察</div>
+                    <div class="popup-value">${properties.teacher_observations}</div>
+                </div>`;
+            }
+            
+            // Recommendations
+            if (properties.recommendations) {
+                html += `<div class="popup-section">
+                    <div class="popup-label">📌 今後への提言</div>
+                    <ul class="popup-list">`;
+                const recs = Array.isArray(properties.recommendations) ? properties.recommendations : [properties.recommendations];
+                recs.forEach(r => {
+                    html += `<li>${r}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            iconSize: [16, 16],   // width, height in pixels
+            iconAnchor: [8,8], // center point of the icon
+            popupAnchor: [0, -16]
+        });
+
+        // Add markers with tooltips and popups
+        L.geoJSON(schoolsData, {
+            pointToLayer: function(feature, latlng) {
+                return L.marker(latlng, {icon: customIcon});
+            },
+            onEachFeature: function(feature, layer) {
+                // Tooltip on hover
+                const tooltipContent = createTooltipContent(feature.properties);
+                layer.bindTooltip(tooltipContent, {
+                    permanent: false,
+                    direction: 'top',
+                    className: 'custom-tooltip',
+                });
+                
+                // Popup on click
+                const popupContent = createPopupContent(feature.properties);
+                layer.bindPopup(popupContent, {
+                    maxWidth: 500,
+                    maxHeight: 500,
+                    className: 'custom-popup'
+                });
+
+                layer.on('click', function(e) {
+                  // Hide tooltip and popup before flying
+                  layer.closeTooltip();
+                  layer.closePopup();
+
+                  // Fly to marker
+                  map.flyTo([e.latlng.lat * 1.00025, e.latlng.lng], 15, {
+                      animate: true,
+                      duration: 1.5,
+                      easeLinearity: 0.2
+                  });
+
+                  // Show tooltip and popup after fly finishes
+                  const onMoveEnd = function() {
+                      layer.openPopup();
+                      // Remove listener so it doesn't trigger on other moves
+                      map.off('moveend', onMoveEnd);
+                  };
+
+                  map.on('moveend', onMoveEnd);
+              });
+            }
+        }).addTo(map);
+        
+        
+    </script>
+</body>
+</html>
