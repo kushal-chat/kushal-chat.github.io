@@ -1,67 +1,90 @@
-# Personal site
+# kushal-chat.github.io
 
-Static site, no dependencies. Node 18+ is only needed to build the blog and data-driven pages.
-All content lives in plain files, so you can add things without touching HTML.
+The source of my personal website: **https://kushal-chat.github.io**
 
-## Where things live
+I'm Kushal Chattopadhyay, a software engineer working on AI infrastructure in Tokyo. The site is my home on the web: who I am, what I've worked on, and a few places that matter to me.
+
+## What's on the site
+
+| Page | File | What it shows |
+|---|---|---|
+| Home | `index.html` | Bio, profile, news, experience, projects, research, skills, credentials, and a small animation of gradient descent on a sphere |
+| Projects | `projects.html` | Things I've built (generated from `data/projects.json`) |
+| Papers | `papers.html` | Research projects and reports (generated from `data/papers.json`) |
+| Places | `history.html` | A world map of places I've lived, worked and studied, with a short note on each (from `data/places.json`) |
+| Blog | `blog/` | Short updates, written in Markdown (from `posts/`) |
+
+## How it works
+
+It is a static site: plain HTML, CSS and JavaScript, with no framework, no bundler and no runtime dependencies. GitHub Pages serves the repository root from `main`.
+
+A small Node script, `build.mjs` (Node 18+, no packages to install), generates the parts that come from content files:
+
+- the blog pages and index, from Markdown in `posts/`
+- the News list on the home page, from the latest posts
+- the Projects and Papers pages, from JSON in `data/`
+- canonical links, Open Graph tags, `sitemap.xml`, `feed.xml` (RSS) and `robots.txt`
+- the "Site last updated" date in each footer
+
+A GitHub Action (`.github/workflows/build.yml`) runs the script whenever `posts/`, `data/`, `templates/` or `build.mjs` change, and commits the result. The generated files are committed, so the site works without any build step on the server.
+
+## Repository layout
+
+```
+index.html, projects.html, papers.html, history.html, 404.html   pages
+blog/                    generated blog pages (do not edit by hand)
+posts/                   blog posts as Markdown, one file per post
+data/                    site.json, projects.json, papers.json, places.json, world.json
+templates/               HTML templates for blog pages
+map/places.js            the Places map (Leaflet)
+viz/                     small interactive visualizations (viz.js is the framework)
+styles.css, theme.js     all styling; nav, theme toggle and fonts
+build.mjs                the build script
+photos/, *.svg, *.png    images, logo and favicons
+```
+
+## Editing content
 
 | To change | Edit | Then |
 |---|---|---|
-| Blog posts | add `posts/<anything>.md` | push (a GitHub Action rebuilds), or `node build.mjs` |
-| Map pins and descriptions | `data/places.json` | reload (no build needed) |
-| Projects page | `data/projects.json` | rebuild |
-| Papers page | `data/papers.json` | rebuild |
-| Site URL, default descriptions | `data/site.json` | rebuild |
-| Nav links | `NAV` array at the top of `theme.js` | reload |
-| Home page, bio, experience | `index.html` | reload |
-| Colors and fonts | `styles.css` (variables at the top) | reload |
+| Add a blog post | add `posts/<anything>.md` | push, and the Action rebuilds |
+| Map pins and notes | `data/places.json` | push |
+| Projects | `data/projects.json` | push |
+| Papers | `data/papers.json` | push |
+| Site address and default descriptions | `data/site.json` | push |
+| Nav links | the `NAV` list at the top of `theme.js` | push |
+| Bio, experience, skills, credentials | `index.html` | push |
+| Colors and fonts | the variables at the top of `styles.css` | push |
 
-## Blog posts
+To preview locally, run `node build.mjs` and serve the folder with any static server, for example `python3 -m http.server`.
 
-```bash
-node build.mjs new "My post title"              # scaffolds posts/<date>-my-post-title.md
-node build.mjs                                   # build once
-node build.mjs --watch                           # rebuild on every save
+**Blog posts** are Markdown files with a short header:
+
+```
+---
+title: My post
+date: 2026-11-23        # or 2026-11 for month precision
+summary: One line shown in lists.
+draft: true             # optional: leaves the post out of the build
+---
 ```
 
-Front matter: `title`, `date` (`YYYY-MM-DD`, or `YYYY-MM` for month precision), `summary`, optional `draft: true`.
-Markdown supports headings, lists, tables, quotes, code fences, images, raw HTML, and `$math$` / `$$math$$` (KaTeX).
-The build writes `blog/*.html`, the blog index, and the News list on the home page.
+Posts support headings, lists, tables, code, images, raw HTML and `$math$` (KaTeX). `node build.mjs new "My post"` creates a starter file, and `node build.mjs --watch` rebuilds on every save. Posts marked `draft: true` are kept in `posts/` but not published; some current ones are drafts.
 
-## Map
+**Map pins**: `node build.mjs add-place "Kyoto, Japan" 35.01 135.77 "A short description."` or edit `data/places.json` (`name`, `lat`, `lng`, `note`, optional `label` and `link`).
 
-`history.html` (the Places page) shows a Leaflet map over a self-hosted world outline (`data/world.json`, Natural Earth; no tile server or API key), with a plain list of places beneath it.
+**Projects and papers**: add an object such as `{ "title": "...", "meta": "2026 · Python", "description": "...", "links": [{ "label": "Code", "url": "https://..." }] }`. Only `title` is required.
 
-```bash
-node build.mjs add-place "Kyoto, Japan" 35.01 135.77 "A short description." [optional-link]
-```
-
-or edit `data/places.json` (`name`, `lat`, `lng`, `note`, optional `label` for the short map label, optional `link`).
-
-## Projects and papers
-
-Add an object to `data/projects.json`, or to a section's `items` in `data/papers.json`:
-
-```json
-{ "title": "My project", "url": "https://...", "meta": "2026 · Python", "description": "One or two sentences.", "links": [{ "label": "Code", "url": "https://..." }] }
-```
-
-Every field except `title` is optional.
-
-## Visualizations in posts
-
-`viz/` holds small interactive visualizations that posts can embed with `<div data-viz="stiefel"></div>` (or `infotheory`).
-To add one, create `viz/my-idea.js` that calls `Viz.register('my-idea', function (el) { ... })` (see the header of `viz/viz.js` and `viz/stiefel.js`).
+**Visualizations**: `viz/` holds interactive visualizations that pages and posts embed with `<div data-viz="name"></div>`. The home page uses `stiefel-mini`. To add one, create `viz/my-idea.js` that calls `Viz.register('my-idea', function (el) { ... })`; see `viz/viz.js` and `viz/stiefel.js` for examples.
 
 ## Deploying
 
-Push to a GitHub repo named `<username>.github.io` and enable Pages (Settings → Pages → Deploy from branch → `main` / root).
-Under Settings → Actions → General → Workflow permissions, choose "Read and write" so `.github/workflows/build.yml` can commit the rebuilt pages when you add a post.
+The repository is named `kushal-chat.github.io`, so GitHub Pages serves it at that address (Settings → Pages → Deploy from a branch → `main` / root). Under Settings → Actions → General → Workflow permissions, the Action needs "Read and write permissions" so it can commit rebuilt pages.
 
-## Deployment checklist
+`404.html` uses root-relative paths, so it expects the site at the domain root rather than under a `/repo-name/` path. `.nojekyll` tells GitHub Pages to serve files as they are. If the site moves, update `url` in `data/site.json` and rebuild.
 
-- Set `url` in `data/site.json` to your real address (for example `https://<username>.github.io`). The build uses it for canonical links, Open Graph tags, `sitemap.xml`, `feed.xml` and `robots.txt`.
-- Run `node build.mjs` before pushing (or let the GitHub Action do it). It also stamps "Site last updated" on every page.
-- `404.html` uses root-relative paths, so it expects the site at the domain root (`<username>.github.io` or a custom domain), not a `/repo-name/` subpath.
-- `.nojekyll` tells GitHub Pages to serve files as they are.
-- Optional: put a `cv.pdf` in the root and add a link to it in `index.html`.
+## Credits
+
+- Map: [Leaflet](https://leafletjs.com) over country outlines from [Natural Earth](https://www.naturalearthdata.com) (public domain), self-hosted in `data/world.json`
+- Math: [KaTeX](https://katex.org)
+- Fonts via Google Fonts: Inter Tight (text and headings), Manrope, Noto Sans JP (Japanese text)
