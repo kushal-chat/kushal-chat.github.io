@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Shinan",
+    "meta": "2025 · OpenAI Responses API, full-stack engineering · presented at SoftBank HQ",
+    "description": "Decentralized multi-agent research AI for Japanese market research and business strategy, using OpenAI Agents SDK, MCP, async orchestration, RAG and guardrails. Next.js/FastAPI stack deployed with Docker Compose."
+  },
+  {
+    "title": "DataDetox: agentic AI for interpretable fine-tuning",
+    "meta": "2025 · AC215, DLOps & LLMOps: Productionizing AI Systems (final project)",
+    "description": "Led a team of 3 building agentic AI for context-aware fine-tuning evaluation with Docker, MCP, DVC, Pulumi and Neo4j for Hugging Face model metadata."
+  },
+  {
+    "title": "Agentic RAG for the MEXT Leading DX School",
+    "meta": "2025 · Harvard Undergraduate Japan Policy Network · GCP",
+    "description": "Led development of an end-to-end agentic RAG system for the MEXT Leading DX School initiative."
+  },
+  {
+    "title": "Jantā Courses: NLU semantic search",
+    "meta": "2024 · NLP, Harvard · BERT, Google Cloud Platform, Streamlit",
+    "description": "First semantic search engine for Harvard courses (21,000+ reviews over 4,000+ courses), deployed as a Streamlit web app with 100+ unique users."
+  }
+]

@@ -1,0 +1,34 @@
+[
+  {
+    "section": "Research",
+    "items": [
+      {
+        "title": "CLIP-Informed Gaussian Splatting",
+        "meta": "2024 · MIT 6.8301, Advances in Computer Vision (perfect score) · PyTorch, Hugging Face, OpenCV",
+        "description": "Gaussian splatting with language information: robust 3D scene reconstruction guided by CLIP. Listed on LinkedIn as Gaussian Splatting with Language Information."
+      },
+      {
+        "title": "A Survey of Large-Scale and Dynamic NeRF Scene Representation",
+        "meta": "2024 · MIT 16.485, Visual Navigation for Autonomous Vehicles · NeRF, Gaussian splatting"
+      },
+      {
+        "title": "Diversity Is All You Need: Entropy-Maximizing RL",
+        "meta": "2023 · CS 184, Reinforcement Learning · MuJoCo, OpenAI Gym, PyTorch, Weights & Biases"
+      }
+    ]
+  },
+  {
+    "section": "Other reports",
+    "items": [
+      {
+        "title": "Leveraging Computer Vision on L.A. Satellite Imagery for Upward Mobility Prediction"
+      },
+      {
+        "title": "A Peninsula of Poverty: Hunter's View, SF"
+      },
+      {
+        "title": "Investigating the Expansion of the Hokuriku Shinkansen on Fukui Prefecture"
+      }
+    ]
+  }
+]

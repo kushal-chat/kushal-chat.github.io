@@ -1,0 +1,11 @@
+{
+  "title": "Kushal Chattopadhyay",
+  "url": "https://kushal-chat.github.io",
+  "description": "Kushal Chattopadhyay is a software engineer on AI infrastructure at SoftBank in Tokyo, with a background in applied mathematics and multi-agent systems.",
+  "descriptions": {
+    "projects.html": "Projects by Kushal Chattopadhyay: multi-agent research systems, agentic RAG and semantic search.",
+    "papers.html": "Research projects and papers by Kushal Chattopadhyay on computer vision, NeRF and reinforcement learning.",
+    "history.html": "A record of places that linger in memory.",
+    "blog/index.html": "Updates on work and life from Kushal Chattopadhyay."
+  }
+}

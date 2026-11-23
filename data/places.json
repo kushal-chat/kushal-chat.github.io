@@ -1,0 +1,67 @@
+{
+  "places": [
+    {
+      "name": "Shinagawa, Tokyo",
+      "lat": 35.6285,
+      "lng": 139.7387,
+      "note": "Based in Tokyo. Working on AI infrastructure at SoftBank.",
+      "label": "Tokyo"
+    },
+    {
+      "name": "Fremont, California",
+      "lat": 37.5485,
+      "lng": -121.9886,
+      "note": "Mission San Jose High School.",
+      "label": "Fremont"
+    },
+    {
+      "name": "Cambridge, Massachusetts",
+      "lat": 42.377,
+      "lng": -71.1167,
+      "note": "Harvard University (A.B. Applied Mathematics, S.M. Computational Science and Engineering) and MIT dual enrollment.",
+      "label": "Cambridge"
+    },
+    {
+      "name": "Wilmington, Massachusetts",
+      "lat": 42.5473,
+      "lng": -71.1737,
+      "note": "Machine learning and robotic perception internships at Symbotic.",
+      "label": "Wilmington"
+    },
+    {
+      "name": "Trondheim, Norway",
+      "lat": 63.4305,
+      "lng": 10.3951,
+      "note": "Perception work with MIT Arcturus.",
+      "label": "Trondheim"
+    },
+    {
+      "name": "Paris, France",
+      "lat": 48.8566,
+      "lng": 2.3522,
+      "note": "Research at Harvard Business School.",
+      "label": "Paris"
+    },
+    {
+      "name": "Fukui Prefecture, Japan",
+      "lat": 36.0652,
+      "lng": 136.2216,
+      "note": "Investigating the expansion of the Hokuriku Shinkansen on Fukui Prefecture.",
+      "label": "Fukui"
+    },
+    {
+      "name": "Hunters Point, San Francisco",
+      "lat": 37.7295,
+      "lng": -122.3714,
+      "note": "A Peninsula of Poverty: Hunter's View, SF.",
+      "label": "San Francisco"
+    },
+    {
+      "name": "Livermore, California",
+      "lat": 37.6819,
+      "lng": -121.768,
+      "note": "The dual-unit kilometer sign on I-580, a leftover of the 1990s metric push.",
+      "label": "Livermore"
+    }
+  ]
+}

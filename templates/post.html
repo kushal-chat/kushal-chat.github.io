@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+{{mark}}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}} · Kushal Chattopadhyay</title>
+  <meta name="description" content="{{summary}}">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../theme.js"></script>
+  <script defer src="../viz/viz.js"></script>{{head}}
+</head>
+<body>
+  <nav></nav>
+  <main>
+    <article>
+      <div class="page-header">
+        <h1>{{title}}</h1>
+        <p>{{summary}}</p>
+        <p class="meta">{{date}} · {{minutes}} min read</p>
+      </div>
+      <div class="post-body">
+{{content}}
+      </div>
+      <div class="post-nav">{{nav}}</div>
+    </article>
+  </main>
+  <footer>Site last updated {{updated}}</footer>
+</body>
+</html>
